@@ -1,207 +1,125 @@
 class HandTracker {
     constructor() {
-        this.hands = new Hands({
-            locateFile: (file) => {
-                return `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`;
-            }
-        });
-        
-        this.hands.setOptions({
-            maxNumHands: 2,
-            modelComplexity: 1,
-            minDetectionConfidence: 0.5,
-            minTrackingConfidence: 0.5
-        });
-        
-        this.results = null;
+        this.isReady = false;
         this.landmarks = null;
         this.handedness = null;
-        this.isReady = false;
-        
-        this.hands.onResults((results) => {
-            this.results = results;
-            if (results.multiHandLandmarks) {
-                this.landmarks = results.multiHandLandmarks;
-                this.handedness = results.multiHandedness;
-            }
-        });
-        
-        this.hands.initialize().then(() => {
-            this.isReady = true;
-        });
+        this._handsLib = null;
+
+        this._init();
     }
-    
+
+    _init() {
+        if (typeof Hands === 'undefined') {
+            // Retry after libs load
+            setTimeout(() => this._init(), 500);
+            return;
+        }
+        try {
+            this._handsLib = new Hands({
+                locateFile: (file) => `https://cdn.jsdelivr.net/npm/@mediapipe/hands/${file}`
+            });
+            this._handsLib.setOptions({
+                maxNumHands: 2,
+                modelComplexity: 1,
+                minDetectionConfidence: 0.6,
+                minTrackingConfidence: 0.5
+            });
+            this._handsLib.onResults((results) => {
+                this.landmarks = results.multiHandLandmarks || [];
+                this.handedness = results.multiHandedness || [];
+            });
+            this._handsLib.initialize().then(() => {
+                this.isReady = true;
+                console.log('Hand tracking ready');
+            }).catch(e => console.warn('Hands init error:', e));
+        } catch(e) {
+            console.warn('HandTracker init failed:', e);
+        }
+    }
+
     async process(videoElement) {
-        if (!this.isReady) return;
-        await this.hands.send({ image: videoElement });
+        if (!this.isReady || !this._handsLib) return;
+        try {
+            await this._handsLib.send({ image: videoElement });
+        } catch(e) { /* ignore frame errors */ }
     }
-    
+
     getHands() {
         if (!this.landmarks) return [];
-        
-        const handsData = [];
-        
-        for (let i = 0; i < this.landmarks.length; i++) {
-            handsData.push({
-                id: i,
-                handedness: this.handedness[i].label,
-                landmarks: this.landmarks[i],
-                confidence: this.handedness[i].score
-            });
-        }
-        
-        return handsData;
+        return this.landmarks.map((lm, i) => ({
+            id: i,
+            handedness: this.handedness[i] ? this.handedness[i].label : 'Unknown',
+            landmarks: lm,
+            confidence: this.handedness[i] ? this.handedness[i].score : 0
+        }));
     }
-    
-    getLandmark(handIndex, landmarkIndex) {
-        if (!this.landmarks || !this.landmarks[handIndex]) return null;
-        return this.landmarks[handIndex][landmarkIndex];
+
+    getLandmarksForHand(idx) {
+        return this.landmarks && this.landmarks[idx] ? this.landmarks[idx] : null;
     }
-    
-    getPalmCenter(handIndex) {
-        const landmarks = this.getLandmarksForHand(handIndex);
-        if (!landmarks) return null;
-        
-        const palm = landmarks.slice(0, 5);
-        let x = 0, y = 0, z = 0;
-        
-        for (let landmark of palm) {
-            x += landmark.x;
-            y += landmark.y;
-            z += landmark.z;
-        }
-        
-        return {
-            x: x / palm.length,
-            y: y / palm.length,
-            z: z / palm.length
-        };
+
+    getLandmark(handIdx, lmIdx) {
+        const lm = this.getLandmarksForHand(handIdx);
+        return lm ? lm[lmIdx] : null;
     }
-    
-    getFingerTip(handIndex, fingerIndex) {
-        const tips = [4, 8, 12, 16, 20];
-        return this.getLandmark(handIndex, tips[fingerIndex]);
+
+    getWrist(handIdx) { return this.getLandmark(handIdx, 0); }
+    getThumbTip(handIdx) { return this.getLandmark(handIdx, 4); }
+    getIndexFingerTip(handIdx) { return this.getLandmark(handIdx, 8); }
+    getMiddleFingerTip(handIdx) { return this.getLandmark(handIdx, 12); }
+    getRingFingerTip(handIdx) { return this.getLandmark(handIdx, 16); }
+    getPinkyTip(handIdx) { return this.getLandmark(handIdx, 20); }
+
+    getPalmCenter(handIdx) {
+        const lm = this.getLandmarksForHand(handIdx);
+        if (!lm) return null;
+        const pts = [0, 1, 5, 9, 13, 17];
+        let x=0, y=0, z=0;
+        pts.forEach(i => { x+=lm[i].x; y+=lm[i].y; z+=lm[i].z; });
+        return { x: x/pts.length, y: y/pts.length, z: z/pts.length };
     }
-    
-    getWrist(handIndex) {
-        return this.getLandmark(handIndex, 0);
+
+    isHandOpen(handIdx) {
+        const lm = this.getLandmarksForHand(handIdx);
+        if (!lm) return false;
+        const tips = [8,12,16,20], pips = [6,10,14,18];
+        let open = 0;
+        for (let i=0; i<tips.length; i++) if (lm[tips[i]].y < lm[pips[i]].y) open++;
+        return open >= 3;
     }
-    
-    getIndexFingerTip(handIndex) {
-        return this.getFingerTip(handIndex, 1);
+
+    isHandClosed(handIdx) { return !this.isHandOpen(handIdx); }
+
+    countFingers(handIdx) {
+        const lm = this.getLandmarksForHand(handIdx);
+        if (!lm) return 0;
+        const tips=[4,8,12,16,20], pips=[3,6,10,14,18];
+        let c=0;
+        for (let i=0; i<tips.length; i++) if (lm[tips[i]].y < lm[pips[i]].y) c++;
+        return c;
     }
-    
-    getMiddleFingerTip(handIndex) {
-        return this.getFingerTip(handIndex, 2);
-    }
-    
-    getRingFingerTip(handIndex) {
-        return this.getFingerTip(handIndex, 3);
-    }
-    
-    getPinkyTip(handIndex) {
-        return this.getFingerTip(handIndex, 4);
-    }
-    
-    getThumbTip(handIndex) {
-        return this.getFingerTip(handIndex, 0);
-    }
-    
-    getLandmarksForHand(handIndex) {
-        if (!this.landmarks || !this.landmarks[handIndex]) return null;
-        return this.landmarks[handIndex];
-    }
-    
-    getHandOrientation(handIndex) {
-        const landmarks = this.getLandmarksForHand(handIndex);
-        if (!landmarks) return null;
-        
-        const wrist = landmarks[0];
-        const middleFinger = landmarks[9];
-        const ringFinger = landmarks[13];
-        
-        const v1 = new THREE.Vector3(middleFinger.x - wrist.x, middleFinger.y - wrist.y, middleFinger.z - wrist.z);
-        const v2 = new THREE.Vector3(ringFinger.x - wrist.x, ringFinger.y - wrist.y, ringFinger.z - wrist.z);
-        
-        const cross = new THREE.Vector3().crossVectors(v1, v2);
-        
-        return {
-            forward: v1.normalize(),
-            side: v2.normalize(),
-            normal: cross.normalize()
-        };
-    }
-    
-    getDistance(handIndex1, landmarkIndex1, handIndex2, landmarkIndex2) {
-        const l1 = this.getLandmark(handIndex1, landmarkIndex1);
-        const l2 = this.getLandmark(handIndex2, landmarkIndex2);
-        
-        if (!l1 || !l2) return 0;
-        
-        const dx = l2.x - l1.x;
-        const dy = l2.y - l1.y;
-        const dz = l2.z - l1.z;
-        
-        return Math.sqrt(dx * dx + dy * dy + dz * dz);
-    }
-    
-    getHandVelocity(handIndex, prevLandmarks) {
-        const landmarks = this.getLandmarksForHand(handIndex);
-        if (!landmarks || !prevLandmarks) return new THREE.Vector3();
-        
-        const wrist = landmarks[0];
-        const prevWrist = prevLandmarks[0];
-        
+
+    getHandVelocity(handIdx, prevLandmarks) {
+        const lm = this.getLandmarksForHand(handIdx);
+        if (!lm || !prevLandmarks) return new THREE.Vector3();
         return new THREE.Vector3(
-            wrist.x - prevWrist.x,
-            wrist.y - prevWrist.y,
-            wrist.z - prevWrist.z
+            lm[0].x - prevLandmarks[0].x,
+            lm[0].y - prevLandmarks[0].y,
+            lm[0].z - prevLandmarks[0].z
         );
     }
-    
-    isHandOpen(handIndex) {
-        const landmarks = this.getLandmarksForHand(handIndex);
-        if (!landmarks) return false;
-        
-        const wrist = landmarks[0];
-        let openFingers = 0;
-        
-        const tipIndices = [4, 8, 12, 16, 20];
-        const pipIndices = [3, 6, 10, 14, 18];
-        
-        for (let i = 0; i < tipIndices.length; i++) {
-            const tip = landmarks[tipIndices[i]];
-            const pip = landmarks[pipIndices[i]];
-            
-            if (tip.y < pip.y) {
-                openFingers++;
-            }
-        }
-        
-        return openFingers >= 4;
+
+    getHandOrientation(handIdx) {
+        const lm = this.getLandmarksForHand(handIdx);
+        if (!lm) return null;
+        const w = lm[0], m = lm[9];
+        const fwd = new THREE.Vector3(m.x-w.x, m.y-w.y, m.z-w.z).normalize();
+        return { forward: fwd, side: new THREE.Vector3(1,0,0), normal: new THREE.Vector3(0,0,1) };
     }
-    
-    isHandClosed(handIndex) {
-        return !this.isHandOpen(handIndex);
-    }
-    
-    countFingers(handIndex) {
-        const landmarks = this.getLandmarksForHand(handIndex);
-        if (!landmarks) return 0;
-        
-        let count = 0;
-        const tipIndices = [4, 8, 12, 16, 20];
-        const pipIndices = [3, 6, 10, 14, 18];
-        
-        for (let i = 0; i < tipIndices.length; i++) {
-            const tip = landmarks[tipIndices[i]];
-            const pip = landmarks[pipIndices[i]];
-            
-            if (tip.y < pip.y) {
-                count++;
-            }
-        }
-        
-        return count;
+
+    getDistance(hi1, li1, hi2, li2) {
+        const a = this.getLandmark(hi1, li1), b = this.getLandmark(hi2, li2);
+        if (!a || !b) return 0;
+        return Math.sqrt(Math.pow(a.x-b.x,2)+Math.pow(a.y-b.y,2)+Math.pow(a.z-b.z,2));
     }
 }
