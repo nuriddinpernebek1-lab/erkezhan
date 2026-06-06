@@ -4,114 +4,379 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AI Magic AR Hands - Interactive Augmented Reality</title>
-    <link rel="stylesheet" href="styles.css">
+    <style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+    height: 100vh;
+    font-family: 'Courier New', monospace;
+    background: #0a0e27;
+    overflow: hidden;
+    color: #00ff88;
+}
+
+#container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+#canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+/* Control Panel */
+.control-panel {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+    background: rgba(10, 14, 39, 0.92);
+    border: 1px solid rgba(0, 255, 136, 0.6);
+    border-radius: 10px;
+    padding: 16px;
+    width: 260px;
+    max-height: calc(100vh - 32px);
+    overflow-y: auto;
+    backdrop-filter: blur(12px);
+    z-index: 1000;
+    box-shadow: 0 0 30px rgba(0,255,136,0.15), inset 0 0 20px rgba(0,255,136,0.03);
+}
+
+.control-panel::-webkit-scrollbar { width: 4px; }
+.control-panel::-webkit-scrollbar-track { background: transparent; }
+.control-panel::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.4); border-radius: 2px; }
+
+.panel-header {
+    font-size: 13px;
+    font-weight: bold;
+    color: #00ff88;
+    text-align: center;
+    margin-bottom: 14px;
+    text-shadow: 0 0 12px #00ff88;
+    letter-spacing: 3px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(0,255,136,0.2);
+}
+
+.panel-section {
+    margin-bottom: 12px;
+    padding: 10px;
+    border: 1px solid rgba(0, 255, 136, 0.15);
+    border-radius: 6px;
+    background: rgba(0,255,136,0.03);
+}
+
+.panel-section label {
+    display: block;
+    margin-bottom: 7px;
+    color: rgba(0,255,136,0.7);
+    font-size: 10px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+}
+
+.control-input {
+    width: 100%;
+    padding: 7px 10px;
+    background: rgba(0,0,0,0.4);
+    border: 1px solid rgba(0,255,136,0.3);
+    border-radius: 4px;
+    color: #00ff88;
+    font-size: 11px;
+    font-family: 'Courier New', monospace;
+    outline: none;
+    cursor: pointer;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.control-input:focus,
+.control-input:hover {
+    border-color: rgba(0,255,136,0.7);
+    box-shadow: 0 0 8px rgba(0,255,136,0.2);
+}
+
+.control-input option {
+    background: #0a0e27;
+    color: #00ff88;
+}
+
+input[type="range"] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: rgba(0,255,136,0.15);
+    border-radius: 2px;
+    outline: none;
+    padding: 0;
+    border: none;
+    box-shadow: none;
+    cursor: pointer;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: #00ff88;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 8px rgba(0,255,136,0.8);
+    transition: transform 0.1s;
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.2);
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 14px;
+    height: 14px;
+    background: #00ff88;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 8px rgba(0,255,136,0.8);
+}
+
+.color-picker {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 5px;
+}
+
+.color-btn {
+    width: 100%;
+    aspect-ratio: 1;
+    border: 2px solid rgba(255,255,255,0.2);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+}
+
+.color-btn:hover {
+    transform: scale(1.15);
+    border-color: #fff;
+    box-shadow: 0 0 12px currentColor;
+}
+
+.color-btn.active {
+    border-color: #fff;
+    box-shadow: 0 0 15px currentColor;
+    transform: scale(1.1);
+}
+
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px;
+}
+
+.control-button {
+    padding: 9px 6px;
+    background: rgba(0,255,136,0.08);
+    border: 1px solid rgba(0,255,136,0.3);
+    border-radius: 4px;
+    color: #00ff88;
+    font-weight: bold;
+    cursor: pointer;
+    font-size: 10px;
+    font-family: 'Courier New', monospace;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    transition: all 0.2s;
+    text-align: center;
+}
+
+.control-button:hover {
+    background: rgba(0,255,136,0.18);
+    border-color: rgba(0,255,136,0.7);
+    box-shadow: 0 0 12px rgba(0,255,136,0.3);
+}
+
+.control-button:active {
+    transform: scale(0.96);
+}
+
+.stats-panel {
+    margin-top: 12px;
+    padding: 10px;
+    border: 1px solid rgba(0,255,136,0.2);
+    border-radius: 4px;
+    background: rgba(0,0,0,0.4);
+    font-size: 10px;
+    line-height: 1.8;
+}
+
+.stats-panel div {
+    color: rgba(0,255,136,0.8);
+}
+
+/* Performance overlay */
+.performance-overlay {
+    position: absolute;
+    top: 12px;
+    left: 12px;
+    background: rgba(0,0,0,0.6);
+    border: 1px solid rgba(0,255,136,0.3);
+    border-radius: 4px;
+    padding: 8px 12px;
+    font-size: 11px;
+    color: #00ff88;
+    z-index: 500;
+    pointer-events: none;
+    letter-spacing: 0.5px;
+}
+
+/* Gesture overlay */
+.gesture-overlay {
+    position: absolute;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0,0,0,0.75);
+    border: 1px solid rgba(0,255,136,0.6);
+    border-radius: 6px;
+    padding: 10px 24px;
+    color: #00ff88;
+    font-weight: bold;
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    z-index: 500;
+    text-shadow: 0 0 8px #00ff88;
+    pointer-events: none;
+    display: none;
+}
+
+.gesture-overlay.active {
+    display: block;
+    animation: gestureIn 0.2s ease-out;
+}
+
+@keyframes gestureIn {
+    from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Fullscreen */
+body.fullscreen .control-panel,
+body.fullscreen .performance-overlay { display: none; }
+
+@media (max-width: 600px) {
+    .control-panel {
+        width: 100%;
+        max-height: 45vh;
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 0;
+        border-radius: 10px 10px 0 0;
+    }
+}
+    </style>
 </head>
 <body>
-    <div id="container">
-        <canvas id="canvas"></canvas>
-        <video id="video" playsinline style="display:none;"></video>
-        <canvas id="drawingCanvas" style="position:absolute;top:0;left:0;display:none;"></canvas>
-        
-        <!-- Control Panel -->
-        <div id="controlPanel" class="control-panel">
-            <div class="panel-header">✨ AI MAGIC HANDS ✨</div>
-            
-            <div class="panel-section">
-                <label>Mode:</label>
-                <select id="modeSelect" class="control-input">
-                    <option value="air-screen">Air Screen</option>
-                    <option value="doctor-strange">Doctor Strange</option>
-                    <option value="portal">Portal</option>
-                    <option value="fire">Fire Trail</option>
-                    <option value="lightning">Lightning</option>
-                    <option value="telekinesis">Telekinesis</option>
-                    <option value="iron-man">Iron Man HUD</option>
-                    <option value="cyberpunk">Cyberpunk</option>
-                    <option value="glitch">Glitch</option>
-                </select>
-            </div>
-            
-            <div class="panel-section">
-                <label>Color Scheme:</label>
-                <div class="color-picker">
-                    <button class="color-btn" data-color="#00ff88" style="background:#00ff88;"></button>
-                    <button class="color-btn" data-color="#0088ff" style="background:#0088ff;"></button>
-                    <button class="color-btn" data-color="#ff0088" style="background:#ff0088;"></button>
-                    <button class="color-btn" data-color="#ff8800" style="background:#ff8800;"></button>
-                    <button class="color-btn" data-color="#8800ff" style="background:#8800ff;"></button>
-                    <button class="color-btn" data-color="#ffff00" style="background:#ffff00;"></button>
-                </div>
-            </div>
-            
-            <div class="panel-section">
-                <label>Particle Count: <span id="particleCountValue">500</span></label>
-                <input type="range" id="particleCount" min="100" max="2000" value="500" class="control-input">
-            </div>
-            
-            <div class="panel-section">
-                <label>Speed: <span id="speedValue">1.0</span></label>
-                <input type="range" id="speed" min="0.5" max="3" value="1.0" step="0.1" class="control-input">
-            </div>
-            
-            <div class="panel-section">
-                <label>Brightness: <span id="brightnessValue">1.0</span></label>
-                <input type="range" id="brightness" min="0.5" max="2" value="1.0" step="0.1" class="control-input">
-            </div>
-            
-            <div class="panel-section">
-                <label>Quality:</label>
-                <select id="qualitySelect" class="control-input">
-                    <option value="low">Low (Better Performance)</option>
-                    <option value="medium" selected>Medium</option>
-                    <option value="high">High (High VRAM)</option>
-                </select>
-            </div>
-            
-            <div class="panel-section button-group">
-                <button id="screenshotBtn" class="control-button">📸 Screenshot</button>
-                <button id="recordBtn" class="control-button">⏹ Record</button>
-            </div>
-            
-            <div class="panel-section button-group">
-                <button id="fullscreenBtn" class="control-button">⛶ Fullscreen</button>
-                <button id="resetBtn" class="control-button">🔄 Reset</button>
-            </div>
-            
-            <div class="stats-panel">
-                <div id="fps">FPS: 0</div>
-                <div id="handStatus">Hands: Waiting...</div>
-                <div id="gestureStatus">Gesture: None</div>
+<div id="container">
+    <canvas id="canvas"></canvas>
+    <video id="video" playsinline autoplay muted style="display:none;"></video>
+
+    <!-- Control Panel -->
+    <div id="controlPanel" class="control-panel">
+        <div class="panel-header">✨ AI MAGIC HANDS ✨</div>
+
+        <div class="panel-section">
+            <label>Mode</label>
+            <select id="modeSelect" class="control-input">
+                <option value="air-screen">Air Screen</option>
+                <option value="doctor-strange">Doctor Strange</option>
+                <option value="portal">Portal</option>
+                <option value="fire">Fire Trail</option>
+                <option value="lightning">Lightning</option>
+                <option value="telekinesis">Telekinesis</option>
+                <option value="iron-man">Iron Man HUD</option>
+                <option value="cyberpunk">Cyberpunk</option>
+                <option value="glitch">Glitch</option>
+            </select>
+        </div>
+
+        <div class="panel-section">
+            <label>Color</label>
+            <div class="color-picker">
+                <button class="color-btn active" data-color="#00ff88" style="background:#00ff88;"></button>
+                <button class="color-btn" data-color="#0088ff" style="background:#0088ff;"></button>
+                <button class="color-btn" data-color="#ff0088" style="background:#ff0088;"></button>
+                <button class="color-btn" data-color="#ff8800" style="background:#ff8800;"></button>
+                <button class="color-btn" data-color="#8800ff" style="background:#8800ff;"></button>
+                <button class="color-btn" data-color="#ffff00" style="background:#ffff00;"></button>
             </div>
         </div>
-        
-        <!-- Performance Overlay -->
-        <div id="performanceOverlay" class="performance-overlay">
-            <div id="performanceText">FPS: 0 | Particles: 0 | Hands: 0</div>
+
+        <div class="panel-section">
+            <label>Particles: <span id="particleCountValue">500</span></label>
+            <input type="range" id="particleCount" min="50" max="2000" value="500" class="control-input">
         </div>
-        
-        <!-- Gesture Overlay -->
-        <div id="gestureOverlay" class="gesture-overlay"></div>
+
+        <div class="panel-section">
+            <label>Speed: <span id="speedValue">1.0</span></label>
+            <input type="range" id="speed" min="0.5" max="3" value="1.0" step="0.1" class="control-input">
+        </div>
+
+        <div class="panel-section">
+            <label>Brightness: <span id="brightnessValue">1.0</span></label>
+            <input type="range" id="brightness" min="0.5" max="2" value="1.0" step="0.1" class="control-input">
+        </div>
+
+        <div class="panel-section">
+            <label>Quality</label>
+            <select id="qualitySelect" class="control-input">
+                <option value="low">Low (faster)</option>
+                <option value="medium" selected>Medium</option>
+                <option value="high">High</option>
+            </select>
+        </div>
+
+        <div class="panel-section button-group">
+            <button id="screenshotBtn" class="control-button">📸 Shot</button>
+            <button id="recordBtn" class="control-button">⏺ Rec</button>
+        </div>
+
+        <div class="panel-section button-group">
+            <button id="fullscreenBtn" class="control-button">⛶ Full</button>
+            <button id="resetBtn" class="control-button">🔄 Reset</button>
+        </div>
+
+        <div class="stats-panel">
+            <div id="fps">FPS: —</div>
+            <div id="handStatus">Hands: waiting...</div>
+            <div id="gestureStatus">Gesture: none</div>
+        </div>
     </div>
-    
-    <script async src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/@mediapipe/drawing_utils/drawing_utils.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/@mediapipe/pose/pose.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/@mediapipe/face_mesh/face_mesh.js"></script>
-    <script async src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/EffectComposer.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/RenderPass.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/UnrealBloomPass.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/postprocessing/ShaderPass.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/shaders/CopyShader.js"></script>
-    <script async src="https://cdn.jsdelivr.net/npm/three@r128/examples/js/shaders/GodRaysShader.js"></script>
-    
-    <script src="js/shaders.js"></script>
-    <script src="js/particles.js"></script>
-    <script src="js/camera.js"></script>
-    <script src="js/handTracker.js"></script>
-    <script src="js/gestureManager.js"></script>
-    <script src="js/effects.js"></script>
-    <script src="js/main.js"></script>
+
+    <div id="performanceOverlay" class="performance-overlay">
+        <div id="performanceText">Initializing...</div>
+    </div>
+
+    <div id="gestureOverlay" class="gesture-overlay"></div>
+</div>
+
+<!-- Load libraries synchronously in correct order -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+
+<!-- App scripts -->
+<script src="js/shaders.js"></script>
+<script src="js/particles.js"></script>
+<script src="js/camera.js"></script>
+<script src="js/handTracker.js"></script>
+<script src="js/gestureManager.js"></script>
+<script src="js/effects.js"></script>
+<script src="js/main.js"></script>
 </body>
 </html>
