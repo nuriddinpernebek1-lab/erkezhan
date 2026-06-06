@@ -3,282 +3,138 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI Magic AR Hands - Interactive Augmented Reality</title>
+    <title>AI Magic AR Hands</title>
     <style>
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
+* { margin:0; padding:0; box-sizing:border-box; }
 body {
-    width: 100%;
-    height: 100vh;
-    font-family: 'Courier New', monospace;
-    background: #0a0e27;
-    overflow: hidden;
-    color: #00ff88;
+    width:100%; height:100vh;
+    font-family:'Courier New',monospace;
+    background:#0a0e27; overflow:hidden; color:#00ff88;
 }
+#container { width:100%; height:100%; position:relative; }
+#canvas    { width:100%; height:100%; display:block; }
 
-#container {
-    width: 100%;
-    height: 100%;
-    position: relative;
-}
-
-#canvas {
-    width: 100%;
-    height: 100%;
-    display: block;
-}
-
-/* Control Panel */
 .control-panel {
-    position: absolute;
-    right: 16px;
-    top: 16px;
-    background: rgba(10, 14, 39, 0.92);
-    border: 1px solid rgba(0, 255, 136, 0.6);
-    border-radius: 10px;
-    padding: 16px;
-    width: 260px;
-    max-height: calc(100vh - 32px);
-    overflow-y: auto;
-    backdrop-filter: blur(12px);
-    z-index: 1000;
-    box-shadow: 0 0 30px rgba(0,255,136,0.15), inset 0 0 20px rgba(0,255,136,0.03);
+    position:absolute; right:14px; top:14px;
+    background:rgba(8,12,30,0.93);
+    border:1px solid rgba(0,255,136,0.45);
+    border-radius:10px; padding:14px; width:250px;
+    max-height:calc(100vh - 28px); overflow-y:auto;
+    backdrop-filter:blur(14px); z-index:1000;
+    box-shadow:0 0 30px rgba(0,255,136,0.1);
 }
-
-.control-panel::-webkit-scrollbar { width: 4px; }
-.control-panel::-webkit-scrollbar-track { background: transparent; }
-.control-panel::-webkit-scrollbar-thumb { background: rgba(0,255,136,0.4); border-radius: 2px; }
+.control-panel::-webkit-scrollbar { width:3px; }
+.control-panel::-webkit-scrollbar-thumb { background:rgba(0,255,136,0.3); border-radius:2px; }
 
 .panel-header {
-    font-size: 13px;
-    font-weight: bold;
-    color: #00ff88;
-    text-align: center;
-    margin-bottom: 14px;
-    text-shadow: 0 0 12px #00ff88;
-    letter-spacing: 3px;
-    padding-bottom: 12px;
-    border-bottom: 1px solid rgba(0,255,136,0.2);
+    font-size:12px; font-weight:bold; color:#00ff88;
+    text-align:center; margin-bottom:12px;
+    text-shadow:0 0 10px #00ff88; letter-spacing:3px;
+    padding-bottom:10px; border-bottom:1px solid rgba(0,255,136,0.15);
 }
 
 .panel-section {
-    margin-bottom: 12px;
-    padding: 10px;
-    border: 1px solid rgba(0, 255, 136, 0.15);
-    border-radius: 6px;
-    background: rgba(0,255,136,0.03);
+    margin-bottom:10px; padding:9px;
+    border:1px solid rgba(0,255,136,0.12);
+    border-radius:5px; background:rgba(0,255,136,0.025);
 }
 
 .panel-section label {
-    display: block;
-    margin-bottom: 7px;
-    color: rgba(0,255,136,0.7);
-    font-size: 10px;
-    letter-spacing: 1.5px;
-    text-transform: uppercase;
+    display:block; margin-bottom:6px;
+    color:rgba(0,255,136,0.6); font-size:9px;
+    letter-spacing:1.5px; text-transform:uppercase;
 }
 
 .control-input {
-    width: 100%;
-    padding: 7px 10px;
-    background: rgba(0,0,0,0.4);
-    border: 1px solid rgba(0,255,136,0.3);
-    border-radius: 4px;
-    color: #00ff88;
-    font-size: 11px;
-    font-family: 'Courier New', monospace;
-    outline: none;
-    cursor: pointer;
-    transition: border-color 0.2s, box-shadow 0.2s;
+    width:100%; padding:6px 8px;
+    background:rgba(0,0,0,0.35);
+    border:1px solid rgba(0,255,136,0.25); border-radius:3px;
+    color:#00ff88; font-size:11px; font-family:inherit;
+    outline:none; cursor:pointer;
+    transition:border-color 0.2s;
 }
-
-.control-input:focus,
-.control-input:hover {
-    border-color: rgba(0,255,136,0.7);
-    box-shadow: 0 0 8px rgba(0,255,136,0.2);
+.control-input:hover, .control-input:focus {
+    border-color:rgba(0,255,136,0.6);
 }
-
-.control-input option {
-    background: #0a0e27;
-    color: #00ff88;
-}
+.control-input option { background:#0a0e27; color:#00ff88; }
 
 input[type="range"] {
-    -webkit-appearance: none;
-    width: 100%;
-    height: 3px;
-    background: rgba(0,255,136,0.15);
-    border-radius: 2px;
-    outline: none;
-    padding: 0;
-    border: none;
-    box-shadow: none;
-    cursor: pointer;
+    -webkit-appearance:none; width:100%; height:3px;
+    background:rgba(0,255,136,0.12); border-radius:2px;
+    outline:none; padding:0; border:none; cursor:pointer;
 }
-
 input[type="range"]::-webkit-slider-thumb {
-    -webkit-appearance: none;
-    width: 14px;
-    height: 14px;
-    background: #00ff88;
-    border-radius: 50%;
-    cursor: pointer;
-    box-shadow: 0 0 8px rgba(0,255,136,0.8);
-    transition: transform 0.1s;
+    -webkit-appearance:none; width:13px; height:13px;
+    background:#00ff88; border-radius:50%;
+    box-shadow:0 0 7px rgba(0,255,136,0.8);
 }
 
-input[type="range"]::-webkit-slider-thumb:hover {
-    transform: scale(1.2);
-}
-
-input[type="range"]::-moz-range-thumb {
-    width: 14px;
-    height: 14px;
-    background: #00ff88;
-    border-radius: 50%;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 0 8px rgba(0,255,136,0.8);
-}
-
-.color-picker {
-    display: grid;
-    grid-template-columns: repeat(6, 1fr);
-    gap: 5px;
-}
-
+.color-picker { display:grid; grid-template-columns:repeat(6,1fr); gap:4px; }
 .color-btn {
-    width: 100%;
-    aspect-ratio: 1;
-    border: 2px solid rgba(255,255,255,0.2);
-    border-radius: 4px;
-    cursor: pointer;
-    transition: transform 0.15s, border-color 0.15s, box-shadow 0.15s;
+    aspect-ratio:1; border:2px solid rgba(255,255,255,0.15);
+    border-radius:3px; cursor:pointer;
+    transition:transform 0.15s, border-color 0.15s;
 }
+.color-btn:hover  { transform:scale(1.2); border-color:#fff; }
+.color-btn.active { border-color:#fff; box-shadow:0 0 10px currentColor; }
 
-.color-btn:hover {
-    transform: scale(1.15);
-    border-color: #fff;
-    box-shadow: 0 0 12px currentColor;
-}
-
-.color-btn.active {
-    border-color: #fff;
-    box-shadow: 0 0 15px currentColor;
-    transform: scale(1.1);
-}
-
-.button-group {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 6px;
-}
-
+.button-group { display:grid; grid-template-columns:1fr 1fr; gap:5px; }
 .control-button {
-    padding: 9px 6px;
-    background: rgba(0,255,136,0.08);
-    border: 1px solid rgba(0,255,136,0.3);
-    border-radius: 4px;
-    color: #00ff88;
-    font-weight: bold;
-    cursor: pointer;
-    font-size: 10px;
-    font-family: 'Courier New', monospace;
-    letter-spacing: 0.5px;
-    text-transform: uppercase;
-    transition: all 0.2s;
-    text-align: center;
+    padding:8px 5px; background:rgba(0,255,136,0.07);
+    border:1px solid rgba(0,255,136,0.25); border-radius:3px;
+    color:#00ff88; font-size:9px; font-family:inherit;
+    letter-spacing:0.5px; text-transform:uppercase;
+    cursor:pointer; transition:all 0.2s; text-align:center;
 }
-
 .control-button:hover {
-    background: rgba(0,255,136,0.18);
-    border-color: rgba(0,255,136,0.7);
-    box-shadow: 0 0 12px rgba(0,255,136,0.3);
+    background:rgba(0,255,136,0.16);
+    border-color:rgba(0,255,136,0.6);
+    box-shadow:0 0 10px rgba(0,255,136,0.2);
 }
 
-.control-button:active {
-    transform: scale(0.96);
+/* Air Screen style pill (only shown in air-screen mode) */
+.air-hint {
+    font-size:9px; color:rgba(0,255,136,0.5);
+    text-align:center; margin-top:6px;
+    line-height:1.5;
 }
 
 .stats-panel {
-    margin-top: 12px;
-    padding: 10px;
-    border: 1px solid rgba(0,255,136,0.2);
-    border-radius: 4px;
-    background: rgba(0,0,0,0.4);
-    font-size: 10px;
-    line-height: 1.8;
+    margin-top:10px; padding:8px;
+    border:1px solid rgba(0,255,136,0.15);
+    border-radius:3px; background:rgba(0,0,0,0.35);
+    font-size:9px; line-height:1.9;
 }
+.stats-panel div { color:rgba(0,255,136,0.7); }
 
-.stats-panel div {
-    color: rgba(0,255,136,0.8);
-}
-
-/* Performance overlay */
 .performance-overlay {
-    position: absolute;
-    top: 12px;
-    left: 12px;
-    background: rgba(0,0,0,0.6);
-    border: 1px solid rgba(0,255,136,0.3);
-    border-radius: 4px;
-    padding: 8px 12px;
-    font-size: 11px;
-    color: #00ff88;
-    z-index: 500;
-    pointer-events: none;
-    letter-spacing: 0.5px;
+    position:absolute; top:10px; left:10px;
+    background:rgba(0,0,0,0.55);
+    border:1px solid rgba(0,255,136,0.2); border-radius:3px;
+    padding:7px 10px; font-size:10px; color:rgba(0,255,136,0.8);
+    z-index:500; pointer-events:none; letter-spacing:0.5px;
 }
 
-/* Gesture overlay */
 .gesture-overlay {
-    position: absolute;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0,0,0,0.75);
-    border: 1px solid rgba(0,255,136,0.6);
-    border-radius: 6px;
-    padding: 10px 24px;
-    color: #00ff88;
-    font-weight: bold;
-    font-size: 13px;
-    text-transform: uppercase;
-    letter-spacing: 2px;
-    z-index: 500;
-    text-shadow: 0 0 8px #00ff88;
-    pointer-events: none;
-    display: none;
+    position:absolute; bottom:22px; left:50%; transform:translateX(-50%);
+    background:rgba(0,0,0,0.75); border:1px solid rgba(0,255,136,0.5);
+    border-radius:5px; padding:9px 22px; color:#00ff88;
+    font-weight:bold; font-size:12px; text-transform:uppercase;
+    letter-spacing:2px; z-index:500; pointer-events:none; display:none;
 }
-
 .gesture-overlay.active {
-    display: block;
-    animation: gestureIn 0.2s ease-out;
+    display:block; animation:gestureIn 0.2s ease-out;
 }
-
 @keyframes gestureIn {
-    from { opacity: 0; transform: translateX(-50%) translateY(6px); }
-    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+    from { opacity:0; transform:translateX(-50%) translateY(6px); }
+    to   { opacity:1; transform:translateX(-50%) translateY(0); }
 }
 
-/* Fullscreen */
 body.fullscreen .control-panel,
-body.fullscreen .performance-overlay { display: none; }
+body.fullscreen .performance-overlay { display:none; }
 
-@media (max-width: 600px) {
-    .control-panel {
-        width: 100%;
-        max-height: 45vh;
-        left: 0;
-        right: 0;
-        top: auto;
-        bottom: 0;
-        border-radius: 10px 10px 0 0;
-    }
+@media(max-width:600px) {
+    .control-panel { width:100%; max-height:42vh; left:0; right:0; top:auto; bottom:0; border-radius:10px 10px 0 0; }
 }
     </style>
 </head>
@@ -287,23 +143,34 @@ body.fullscreen .performance-overlay { display: none; }
     <canvas id="canvas"></canvas>
     <video id="video" playsinline autoplay muted style="display:none;"></video>
 
-    <!-- Control Panel -->
     <div id="controlPanel" class="control-panel">
         <div class="panel-header">✨ AI MAGIC HANDS ✨</div>
 
         <div class="panel-section">
             <label>Mode</label>
             <select id="modeSelect" class="control-input">
-                <option value="air-screen">Air Screen</option>
-                <option value="doctor-strange">Doctor Strange</option>
-                <option value="portal">Portal</option>
-                <option value="fire">Fire Trail</option>
-                <option value="lightning">Lightning</option>
-                <option value="telekinesis">Telekinesis</option>
-                <option value="iron-man">Iron Man HUD</option>
-                <option value="cyberpunk">Cyberpunk</option>
-                <option value="glitch">Glitch</option>
+                <option value="air-screen" selected>✋ Air Screen</option>
+                <option value="fire">🔥 Fire Trail</option>
+                <option value="lightning">⚡ Lightning</option>
+                <option value="doctor-strange">🌀 Doctor Strange</option>
+                <option value="portal">🌌 Portal</option>
+                <option value="telekinesis">🧲 Telekinesis</option>
+                <option value="iron-man">🤖 Iron Man HUD</option>
+                <option value="cyberpunk">💻 Cyberpunk</option>
+                <option value="glitch">📺 Glitch</option>
             </select>
+        </div>
+
+        <!-- Air Screen Style (visible always, only matters in air-screen mode) -->
+        <div class="panel-section">
+            <label>Air Screen Style</label>
+            <select id="airScreenStyle" class="control-input">
+                <option value="1" selected>🎨 Cyanotype</option>
+                <option value="3">⚫ Halftone</option>
+                <option value="2">📺 Glitch</option>
+                <option value="0">📹 Normal</option>
+            </select>
+            <div class="air-hint">Show both hands to stretch the screen</div>
         </div>
 
         <div class="panel-section">
@@ -322,17 +189,14 @@ body.fullscreen .performance-overlay { display: none; }
             <label>Particles: <span id="particleCountValue">500</span></label>
             <input type="range" id="particleCount" min="50" max="2000" value="500" class="control-input">
         </div>
-
         <div class="panel-section">
             <label>Speed: <span id="speedValue">1.0</span></label>
             <input type="range" id="speed" min="0.5" max="3" value="1.0" step="0.1" class="control-input">
         </div>
-
         <div class="panel-section">
             <label>Brightness: <span id="brightnessValue">1.0</span></label>
             <input type="range" id="brightness" min="0.5" max="2" value="1.0" step="0.1" class="control-input">
         </div>
-
         <div class="panel-section">
             <label>Quality</label>
             <select id="qualitySelect" class="control-input">
@@ -346,7 +210,6 @@ body.fullscreen .performance-overlay { display: none; }
             <button id="screenshotBtn" class="control-button">📸 Shot</button>
             <button id="recordBtn" class="control-button">⏺ Rec</button>
         </div>
-
         <div class="panel-section button-group">
             <button id="fullscreenBtn" class="control-button">⛶ Full</button>
             <button id="resetBtn" class="control-button">🔄 Reset</button>
@@ -362,21 +225,21 @@ body.fullscreen .performance-overlay { display: none; }
     <div id="performanceOverlay" class="performance-overlay">
         <div id="performanceText">Initializing...</div>
     </div>
-
     <div id="gestureOverlay" class="gesture-overlay"></div>
 </div>
 
-<!-- Load libraries synchronously in correct order -->
+<!-- Libraries (synchronous, order matters) -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
 
-<!-- App scripts -->
+<!-- App -->
 <script src="js/shaders.js"></script>
 <script src="js/particles.js"></script>
 <script src="js/camera.js"></script>
 <script src="js/handTracker.js"></script>
 <script src="js/gestureManager.js"></script>
 <script src="js/effects.js"></script>
+<script src="js/airScreen.js"></script>
 <script src="js/main.js"></script>
 </body>
 </html>
