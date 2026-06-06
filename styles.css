@@ -1,0 +1,309 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    width: 100%;
+    height: 100vh;
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+    overflow: hidden;
+    color: #00ff88;
+}
+
+#container {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+    background: linear-gradient(135deg, rgba(10, 14, 39, 0.9) 0%, rgba(26, 31, 58, 0.9) 100%);
+}
+
+/* Control Panel Styling */
+.control-panel {
+    position: absolute;
+    right: 20px;
+    top: 20px;
+    background: rgba(15, 20, 40, 0.95);
+    border: 2px solid #00ff88;
+    border-radius: 12px;
+    padding: 20px;
+    width: 280px;
+    max-height: 90vh;
+    overflow-y: auto;
+    backdrop-filter: blur(10px);
+    z-index: 1000;
+    box-shadow: 0 0 20px rgba(0, 255, 136, 0.3), inset 0 0 10px rgba(0, 255, 136, 0.1);
+    font-size: 12px;
+}
+
+.control-panel::-webkit-scrollbar {
+    width: 6px;
+}
+
+.control-panel::-webkit-scrollbar-track {
+    background: rgba(0, 255, 136, 0.1);
+}
+
+.control-panel::-webkit-scrollbar-thumb {
+    background: #00ff88;
+    border-radius: 3px;
+}
+
+.panel-header {
+    font-size: 16px;
+    font-weight: bold;
+    color: #00ff88;
+    text-align: center;
+    margin-bottom: 15px;
+    text-shadow: 0 0 10px #00ff88;
+    letter-spacing: 2px;
+}
+
+.panel-section {
+    margin-bottom: 15px;
+    padding: 10px;
+    border: 1px solid rgba(0, 255, 136, 0.3);
+    border-radius: 6px;
+    background: rgba(0, 255, 136, 0.05);
+}
+
+.panel-section label {
+    display: block;
+    margin-bottom: 8px;
+    color: #00ff88;
+    font-weight: bold;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 1px;
+}
+
+.control-input {
+    width: 100%;
+    padding: 8px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid #00ff88;
+    border-radius: 4px;
+    color: #00ff88;
+    font-size: 12px;
+}
+
+.control-input:focus {
+    outline: none;
+    box-shadow: 0 0 10px #00ff88;
+}
+
+.control-input option {
+    background: #1a1f3a;
+    color: #00ff88;
+}
+
+input[type="range"] {
+    width: 100%;
+    height: 4px;
+    background: rgba(0, 255, 136, 0.2);
+    border-radius: 2px;
+    outline: none;
+    -webkit-appearance: none;
+}
+
+input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #00ff88;
+    border-radius: 50%;
+    cursor: pointer;
+    box-shadow: 0 0 10px #00ff88;
+}
+
+input[type="range"]::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #00ff88;
+    border-radius: 50%;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 0 10px #00ff88;
+}
+
+.color-picker {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 6px;
+}
+
+.color-btn {
+    width: 100%;
+    height: 30px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 4px;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.color-btn:hover {
+    border-color: #ffffff;
+    box-shadow: 0 0 10px currentColor;
+}
+
+.control-button {
+    width: 100%;
+    padding: 10px;
+    background: rgba(0, 255, 136, 0.2);
+    border: 1px solid #00ff88;
+    border-radius: 4px;
+    color: #00ff88;
+    font-weight: bold;
+    cursor: pointer;
+    transition: all 0.2s;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.control-button:hover {
+    background: rgba(0, 255, 136, 0.4);
+    box-shadow: 0 0 15px rgba(0, 255, 136, 0.5);
+}
+
+.control-button:active {
+    background: rgba(0, 255, 136, 0.6);
+}
+
+.button-group {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+.button-group .control-button {
+    width: 100%;
+}
+
+.stats-panel {
+    margin-top: 15px;
+    padding: 10px;
+    border: 1px solid rgba(0, 255, 136, 0.5);
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.5);
+    font-size: 10px;
+    line-height: 1.6;
+}
+
+.stats-panel div {
+    color: #00ff88;
+    font-family: 'Courier New', monospace;
+}
+
+/* Performance Overlay */
+.performance-overlay {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    background: rgba(0, 0, 0, 0.7);
+    border: 1px solid #00ff88;
+    border-radius: 4px;
+    padding: 10px;
+    font-family: 'Courier New', monospace;
+    font-size: 12px;
+    color: #00ff88;
+    z-index: 500;
+    text-shadow: 0 0 5px #00ff88;
+}
+
+#performanceText {
+    letter-spacing: 1px;
+}
+
+/* Gesture Overlay */
+.gesture-overlay {
+    position: absolute;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid #00ff88;
+    border-radius: 8px;
+    padding: 15px 30px;
+    color: #00ff88;
+    font-weight: bold;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    z-index: 500;
+    text-shadow: 0 0 10px #00ff88;
+    min-width: 200px;
+    text-align: center;
+    display: none;
+}
+
+.gesture-overlay.active {
+    display: block;
+    animation: gestureGlow 0.5s ease-out;
+}
+
+@keyframes gestureGlow {
+    0% {
+        box-shadow: 0 0 0 rgba(0, 255, 136, 0.5);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(0, 255, 136, 0.8);
+    }
+    100% {
+        box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+    }
+}
+
+/* Fullscreen Mode */
+body.fullscreen #controlPanel {
+    display: none;
+}
+
+body.fullscreen #performanceOverlay {
+    display: none;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .control-panel {
+        width: 100%;
+        max-height: 50vh;
+        left: 0;
+        right: 0;
+        top: auto;
+        bottom: 0;
+        border-radius: 12px 12px 0 0;
+    }
+}
+
+/* Animations */
+@keyframes pulse {
+    0%, 100% {
+        text-shadow: 0 0 10px #00ff88;
+    }
+    50% {
+        text-shadow: 0 0 20px #00ff88;
+    }
+}
+
+.pulse {
+    animation: pulse 1s ease-in-out infinite;
+}
+
+/* Scrollbar styling for Firefox */
+.control-panel {
+    scrollbar-color: #00ff88 rgba(0, 255, 136, 0.1);
+    scrollbar-width: thin;
+}
